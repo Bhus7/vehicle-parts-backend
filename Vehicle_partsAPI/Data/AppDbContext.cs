@@ -12,5 +12,8 @@ namespace vehicle_parts.Data
 
         public DbSet<Appointment> Appointments { get; set; }
 
+        public DbSet<User> Users { get; set; }
+
+        public DbSet<Role> Roles { get; set; }
     }
 }
