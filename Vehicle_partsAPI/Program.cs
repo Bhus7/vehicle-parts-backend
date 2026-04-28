@@ -24,6 +24,11 @@ namespace vehicle_parts
             // Register repositories and services
             builder.Services.AddScoped<IStaffRepository, StaffRepository>();
             builder.Services.AddScoped<IStaffService, StaffService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
+            
+            // Register Background Service for Automatic Notifications
+            builder.Services.AddHostedService<NotificationBackgroundService>();
 
 
             builder.Services.AddCors(options =>
