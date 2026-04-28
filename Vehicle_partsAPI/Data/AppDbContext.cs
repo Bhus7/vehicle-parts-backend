@@ -1,14 +1,16 @@
 using Microsoft.EntityFrameworkCore;
-using Vehicle_partsAPI.Models;
+using vehicle_parts.Models;
 
-namespace Vehicle_partsAPI.Data
+namespace vehicle_parts.Data
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-        {
-        }
+        public AppDbContext(DbContextOptions<AppDbContext> options)
+            : base(options) { }
 
-        public DbSet<Product> Products { get; set; }
+        public DbSet<Customer> Customers { get; set; }
+
+        public DbSet<Appointment> Appointments { get; set; }
+
     }
 }
