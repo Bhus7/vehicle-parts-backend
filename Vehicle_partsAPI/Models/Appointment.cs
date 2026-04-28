@@ -1,19 +1,33 @@
-﻿using System;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace vehicle_parts.Models
 {
     public class Appointment
     {
-        public int Id { get; set; }
+        [Key]
+        public int AppointmentID { get; set; }
 
-        public string VehicleNumber { get; set; }
+        [Required]
+        public int UserID { get; set; }
+        [JsonIgnore]
+        public User? User { get; set; }
 
+        [Required]
+        public int VehicleID { get; set; }
+
+        [JsonIgnore]
+        public Vehicle? Vehicle { get; set; }
+
+        [Required]
         public DateTime AppointmentDate { get; set; }
 
-        public string Description { get; set; }
+        public string ServiceType { get; set; }
 
-        public string Status { get; set; } = "Pending";
+        public string Status { get; set; } = "Scheduled";
 
-        public int CustomerId { get; set; }
+        public string Notes { get; set; }
     }
 }

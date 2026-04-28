@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using vehicle_parts.Data;
 using vehicle_parts.Models;
+using vehicle_parts.Dto;
 using System.Linq;
 
 namespace vehicle_parts.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Tags("2. Appointments")]
     public class AppointmentsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -18,21 +20,29 @@ namespace vehicle_parts.Controllers
 
         // Create appointment
         [HttpPost]
-        public IActionResult Create(Appointment appointment)
+        public IActionResult Create(AppointmentCreateDto dto)
         {
-            if (string.IsNullOrEmpty(appointment.VehicleNumber) ||
-                string.IsNullOrEmpty(appointment.Description) ||
-                appointment.CustomerId == 0)
+            if (dto.VehicleID == 0 ||
+                string.IsNullOrEmpty(dto.ServiceType) ||
+                dto.UserID == 0)
             {
                 return BadRequest("All fields are required");
             }
 
-            if (appointment.AppointmentDate == default)
+            if (dto.AppointmentDate == default)
             {
                 return BadRequest("Invalid date");
             }
 
-            appointment.Status = "Pending";
+            var appointment = new Appointment
+            {
+                UserID = dto.UserID,
+                VehicleID = dto.VehicleID,
+                AppointmentDate = dto.AppointmentDate,
+                ServiceType = dto.ServiceType,
+                Notes = dto.Notes,
+                Status = string.IsNullOrEmpty(dto.Status) ? "Scheduled" : dto.Status
+            };
 
             _context.Appointments.Add(appointment);
             _context.SaveChanges();
@@ -41,11 +51,11 @@ namespace vehicle_parts.Controllers
         }
 
         // Get by customer
-        [HttpGet("{customerId}")]
-        public IActionResult GetByCustomer(int customerId)
+        [HttpGet("{userId}")]
+        public IActionResult GetByCustomer(int userId)
         {
             var appointments = _context.Appointments
-                .Where(a => a.CustomerId == customerId)
+                .Where(a => a.UserID == userId)
                 .ToList();
 
             return Ok(appointments);

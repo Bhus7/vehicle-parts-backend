@@ -1,14 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using vehicle_parts.Data;
 using vehicle_parts.Models;
+using vehicle_parts.Dto;
 using System.Linq;
-
-
 
 namespace vehicle_parts.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Tags("3. User Authentication & Profile")]
     public class CustomersController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -20,60 +20,70 @@ namespace vehicle_parts.Controllers
 
         // REGISTER
         [HttpPost("register")]
-        public IActionResult Register(Customer customer)
+        public IActionResult Register(UserRegisterDto dto)
         {
             // Basic null check
-            if (customer == null)
+            if (dto == null)
                 return BadRequest("Invalid data");
 
             // Required field validation
-            if (string.IsNullOrWhiteSpace(customer.Name) ||
-                string.IsNullOrWhiteSpace(customer.Email) ||
-                string.IsNullOrWhiteSpace(customer.Password) ||
-                string.IsNullOrWhiteSpace(customer.Phone))
+            if (string.IsNullOrWhiteSpace(dto.FullName) ||
+                string.IsNullOrWhiteSpace(dto.Email) ||
+                string.IsNullOrWhiteSpace(dto.Password) ||
+                string.IsNullOrWhiteSpace(dto.Phone))
             {
                 return BadRequest("All fields are required");
             }
 
             // Email format check
-            if (!customer.Email.Contains("@") || !customer.Email.Contains("."))
+            if (!dto.Email.Contains("@") || !dto.Email.Contains("."))
             {
                 return BadRequest("Invalid email format");
             }
 
             // Password length check
-            if (customer.Password.Length < 4)
+            if (dto.Password.Length < 4)
             {
                 return BadRequest("Password must be at least 4 characters");
             }
 
             // Phone number length check (basic)
-            if (customer.Phone.Length < 10)
+            if (dto.Phone.Length < 10)
             {
                 return BadRequest("Invalid phone number");
             }
 
             // Check duplicate email (case-insensitive)
-            var exists = _context.Customers
-                .Any(c => c.Email.ToLower() == customer.Email.ToLower());
+            var exists = _context.Users
+                .Any(u => u.Email.ToLower() == dto.Email.ToLower());
 
             if (exists)
                 return BadRequest("Email already exists");
 
-            // Force role
-            customer.Role = "Customer";
+            // Create User from DTO
+            var user = new User
+            {
+                FullName = dto.FullName,
+                Email = dto.Email,
+                Phone = dto.Phone,
+                PasswordHash = dto.Password,
+                Address = dto.Address,
+                RoleID = 3, // Default role is Customer
+                CreatedDate = System.DateTime.UtcNow,
+                Status = "Active"
+            };
 
-            _context.Customers.Add(customer);
+            _context.Users.Add(user);
             _context.SaveChanges();
 
             // Clean response
             return Ok(new
             {
-                customer.Id,
-                customer.Name,
-                customer.Email,
-                customer.Phone,
-                customer.Role
+                user.UserID,
+                user.FullName,
+                user.Email,
+                user.Phone,
+                user.RoleID
             });
         }
 
@@ -81,47 +91,49 @@ namespace vehicle_parts.Controllers
         [HttpPost("login")]
         public IActionResult Login(LoginDto login)
         {
-            // Admin Login
+            // Admin Login (Hardcoded for initial testing)
             if (login.Email == "admin@gmail.com" && login.Password == "admin123")
             {
                 return Ok(new
                 {
-                    Id = 0,
-                    Name = "Admin",
+                    UserID = 0,
+                    FullName = "Admin",
                     Email = "admin@gmail.com",
                     Phone = "",
-                    Role = "Admin"
+                    RoleID = 1 // Admin Role
                 });
             }
 
-            // 🔹 Normal Customer Login
-            var user = _context.Customers
-                .FirstOrDefault(c => c.Email == login.Email && c.Password == login.Password);
+            // Normal User Login
+            var user = _context.Users
+                .FirstOrDefault(u => u.Email == login.Email && u.PasswordHash == login.Password);
 
             if (user == null)
                 return Unauthorized("Invalid credentials");
 
             return Ok(new
             {
-                user.Id,
-                user.Name,
+                user.UserID,
+                user.FullName,
                 user.Email,
                 user.Phone,
-                user.Role
+                user.RoleID
             });
         }
 
         [HttpGet]
         public IActionResult GetAllCustomers()
         {
-            var customers = _context.Customers.ToList();
-            return Ok(_context.Customers.Select(c => new {
-                c.Id,
-                c.Name,
-                c.Email,
-                c.Phone,
-                c.Role
-            }));
+            var customers = _context.Users
+                .Where(u => u.RoleID == 3) // Only customers
+                .Select(u => new {
+                    u.UserID,
+                    u.FullName,
+                    u.Email,
+                    u.Phone
+                }).ToList();
+            
+            return Ok(customers);
         }
     }
 }
