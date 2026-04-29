@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using vehicle_parts.Data;
+using vehicle_parts.Repositories;
+using vehicle_parts.Services;
 
 namespace vehicle_parts
 {
@@ -11,13 +13,14 @@ namespace vehicle_parts
 
             builder.Services.AddControllers();
 
-
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+            builder.Services.AddScoped<IStaffService, StaffService>();
 
 
             builder.Services.AddCors(options =>
