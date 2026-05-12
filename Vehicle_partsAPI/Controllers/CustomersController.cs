@@ -94,7 +94,7 @@ namespace vehicle_parts.Controllers
                 });
             }
 
-            // 🔹 Normal Customer Login
+            // Normal Customer Login
             var user = _context.Customers
                 .FirstOrDefault(c => c.Email == login.Email && c.Password == login.Password);
 
@@ -115,13 +115,7 @@ namespace vehicle_parts.Controllers
         public IActionResult GetAllCustomers()
         {
             var customers = _context.Customers.ToList();
-            return Ok(_context.Customers.Select(c => new {
-                c.Id,
-                c.Name,
-                c.Email,
-                c.Phone,
-                c.Role
-            }));
+            return Ok(customers);
         }
     }
 }
