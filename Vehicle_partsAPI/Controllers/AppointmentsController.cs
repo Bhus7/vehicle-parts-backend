@@ -41,8 +41,9 @@ namespace vehicle_parts.Controllers
                 AppointmentDate = dto.AppointmentDate,
                 ServiceType = dto.ServiceType,
                 Notes = dto.Notes,
-                Status = string.IsNullOrEmpty(dto.Status) ? "Scheduled" : dto.Status
+                Status = string.IsNullOrEmpty(dto.Status) ? "Pending" : dto.Status
             };
+            appointment.Id = 0; // Ensure the ID is handled by the database
 
             _context.Appointments.Add(appointment);
             _context.SaveChanges();

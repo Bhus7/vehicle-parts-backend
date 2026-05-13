@@ -22,18 +22,46 @@ namespace vehicle_parts.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Configure relationships and precision
+            modelBuilder.Entity<SalesInvoice>()
+                .Property(s => s.TotalAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SalesInvoice>()
+                .Property(s => s.DiscountAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SalesInvoice>()
+                .Property(s => s.FinalAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SalesInvoiceDetail>()
+                .Property(s => s.UnitPrice)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SalesInvoiceDetail>()
+                .Property(s => s.Subtotal)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.AmountPaid)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.RemainingBalance)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SalesInvoice>()
+                .HasOne(s => s.Customer)
+                .WithMany()
+                .HasForeignKey(s => s.UserID);
+
             // Seed Roles
             modelBuilder.Entity<Role>().HasData(
                 new Role { RoleID = 1, RoleName = "Admin" },
                 new Role { RoleID = 2, RoleName = "Staff" },
                 new Role { RoleID = 3, RoleName = "Customer" }
             );
-
-            // Configure Relationships if needed (EF core handles most by convention)
-            modelBuilder.Entity<SalesInvoice>()
-                .HasOne(s => s.Customer)
-                .WithMany()
-                .HasForeignKey(s => s.UserID);
         }
     }
 }

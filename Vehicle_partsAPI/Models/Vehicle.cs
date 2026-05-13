@@ -13,21 +13,21 @@ namespace vehicle_parts.Models
         public int UserID { get; set; }
 
         [JsonIgnore]
+        [ForeignKey("UserID")]
         public User? User { get; set; }
 
         [Required]
-        public string VehicleNumber { get; set; }
+        [MaxLength(20)]
+        public string VehicleNumber { get; set; } = string.Empty;
 
-        [Required]
-        public string Brand { get; set; }
+        public string? Brand { get; set; }
 
-        [Required]
-        public string Model { get; set; }
+        public string? Model { get; set; }
 
         public int Year { get; set; }
 
-        public string VehicleType { get; set; }
+        public string? VehicleType { get; set; }
 
-        public string ConditionNotes { get; set; }
+        public string? ConditionNotes { get; set; }
     }
 }
