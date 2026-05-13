@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using vehicle_parts.Data;
 using vehicle_parts.Models;
 using System.Linq;
@@ -33,6 +33,7 @@ namespace vehicle_parts.Controllers
             }
 
             appointment.Status = "Pending";
+            appointment.Id = 0; // Ensure the ID is handled by the database
 
             _context.Appointments.Add(appointment);
             _context.SaveChanges();
