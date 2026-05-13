@@ -7,34 +7,29 @@ namespace vehicle_parts.Models
     public class SalesInvoice
     {
         [Key]
-        public int Id { get; set; }
+        public int SalesInvoiceID { get; set; }
 
         [Required]
-        public int CustomerId { get; set; }
+        public int UserID { get; set; }
+
+        [ForeignKey("UserID")]
+        public User? Customer { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(18,2)")]
+        public DateTime SalesDate { get; set; } = DateTime.UtcNow;
+
+        [Required]
         public decimal TotalAmount { get; set; }
 
-        [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal PaidAmount { get; set; }
+        public decimal DiscountAmount { get; set; }
 
         [Required]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public decimal FinalAmount { get; set; }
 
-        [Required]
-        [MaxLength(20)]
-        public string Status { get; set; } = "Pending"; // e.g., Pending, Paid, PartiallyPaid
+        public string PaymentStatus { get; set; } = "Pending";
 
-        // Navigation property
-        [ForeignKey("CustomerId")]
-        public Customer Customer { get; set; }
+        public DateTime? DueDate { get; set; }
 
-        [NotMapped]
-        public bool IsOverdue => (TotalAmount > PaidAmount) && (DateTime.UtcNow > CreatedAt.AddMonths(1));
-        
-        [NotMapped]
-        public decimal CreditAmount => TotalAmount - PaidAmount;
+        public ICollection<SalesInvoiceDetail>? Details { get; set; }
     }
 }

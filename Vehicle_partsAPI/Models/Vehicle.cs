@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace vehicle_parts.Models
 {
@@ -11,9 +12,13 @@ namespace vehicle_parts.Models
         [Required]
         public int UserID { get; set; }
 
+        [JsonIgnore]
+        [ForeignKey("UserID")]
+        public User? User { get; set; }
+
         [Required]
         [MaxLength(20)]
-        public required string VehicleNumber { get; set; }
+        public string VehicleNumber { get; set; } = string.Empty;
 
         public string? Brand { get; set; }
 
@@ -24,9 +29,5 @@ namespace vehicle_parts.Models
         public string? VehicleType { get; set; }
 
         public string? ConditionNotes { get; set; }
-
-        // Navigation properties
-        [ForeignKey("UserID")]
-        public User? User { get; set; }
     }
 }

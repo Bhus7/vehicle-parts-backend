@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace vehicle_parts.Models
 {
@@ -12,6 +14,10 @@ namespace vehicle_parts.Models
         [Required]
         public int RoleID { get; set; }
 
+        [JsonIgnore]
+        [ForeignKey("RoleID")]
+        public Role? Role { get; set; }
+
         [Required]
         [MaxLength(100)]
         public string FullName { get; set; }
@@ -20,6 +26,7 @@ namespace vehicle_parts.Models
         [MaxLength(150)]
         public string Email { get; set; }
 
+        [Required]
         [MaxLength(20)]
         public string Phone { get; set; }
 
@@ -34,8 +41,8 @@ namespace vehicle_parts.Models
         [MaxLength(20)]
         public string Status { get; set; } = "Active";
 
-        // Navigation property
-        [ForeignKey("RoleID")]
-        public Role Role { get; set; }
+        // Navigation properties
+        [JsonIgnore]
+        public ICollection<Vehicle>? Vehicles { get; set; }
     }
 }

@@ -25,14 +25,14 @@ namespace vehicle_parts.Services
 
         private async Task CheckLowStockAsync()
         {
-            var lowStockProducts = await _context.Products
+            var lowStockProducts = await _context.Parts
                 .Where(p => p.StockQuantity < 10)
                 .ToListAsync();
 
             if (lowStockProducts.Any())
             {
                 var adminEmail = "admin@vehicleparts.com"; // Default admin email
-                var productList = string.Join("\n", lowStockProducts.Select(p => $"- {p.Name} (Stock: {p.StockQuantity})"));
+                var productList = string.Join("\n", lowStockProducts.Select(p => $"- {p.PartName} (Stock: {p.StockQuantity})"));
                 
                 await _emailService.SendEmailAsync(
                     adminEmail,
@@ -48,7 +48,7 @@ namespace vehicle_parts.Services
             
             var overdueInvoices = await _context.SalesInvoices
                 .Include(i => i.Customer)
-                .Where(i => i.PaidAmount < i.TotalAmount && i.CreatedAt < oneMonthAgo)
+                .Where(i => i.PaymentStatus != "Paid" && i.SalesDate < oneMonthAgo)
                 .ToListAsync();
 
             foreach (var invoice in overdueInvoices)
@@ -58,7 +58,7 @@ namespace vehicle_parts.Services
                     await _emailService.SendEmailAsync(
                         invoice.Customer.Email,
                         "PAYMENT REMINDER: Unpaid Credits",
-                        $"Dear {invoice.Customer.Name},\n\nThis is a reminder that you have an unpaid credit of {invoice.TotalAmount - invoice.PaidAmount:C} for the invoice created on {invoice.CreatedAt:d}.\n\nPlease clear your dues as soon as possible."
+                        $"Dear {invoice.Customer.FullName},\n\nThis is a reminder that you have an unpaid credit of {invoice.FinalAmount:C} for the invoice created on {invoice.SalesDate:d}.\n\nPlease clear your dues as soon as possible."
                     );
                 }
             }

@@ -50,17 +50,6 @@ namespace vehicle_parts
                     context.Database.OpenConnection();
                     Console.WriteLine("Database connected successfully");
                     context.Database.CloseConnection();
-
-                    // Seed Roles if they don't exist
-                    if (!context.Roles.Any())
-                    {
-                        context.Roles.AddRange(
-                            new vehicle_parts.Models.Role { RoleName = "ADMIN" },
-                            new vehicle_parts.Models.Role { RoleName = "STAFF" }
-                        );
-                        context.SaveChanges();
-                        Console.WriteLine("Default roles (ADMIN, STAFF) seeded.");
-                    }
                 }
                 catch (Exception ex)
                 {

@@ -8,19 +8,21 @@ namespace vehicle_parts.Data
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options) { }
 
-        public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
+        public DbSet<Part> Parts { get; set; }
         public DbSet<SalesInvoice> SalesInvoices { get; set; }
         public DbSet<SalesInvoiceDetail> SalesInvoiceDetails { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<Appointment> Appointments { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure relationships and precision if needed
+            // Configure relationships and precision
             modelBuilder.Entity<SalesInvoice>()
                 .Property(s => s.TotalAmount)
                 .HasPrecision(18, 2);
@@ -48,13 +50,18 @@ namespace vehicle_parts.Data
             modelBuilder.Entity<Payment>()
                 .Property(p => p.RemainingBalance)
                 .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SalesInvoice>()
+                .HasOne(s => s.Customer)
+                .WithMany()
+                .HasForeignKey(s => s.UserID);
+
+            // Seed Roles
+            modelBuilder.Entity<Role>().HasData(
+                new Role { RoleID = 1, RoleName = "Admin" },
+                new Role { RoleID = 2, RoleName = "Staff" },
+                new Role { RoleID = 3, RoleName = "Customer" }
+            );
         }
-        public DbSet<User> Users { get; set; }
-
-        public DbSet<Role> Roles { get; set; }
-
-        public DbSet<SalesInvoice> SalesInvoices { get; set; }
-
-        public DbSet<Product> Products { get; set; }
     }
 }

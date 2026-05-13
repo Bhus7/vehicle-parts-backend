@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,8 +12,13 @@ namespace vehicle_parts.Models
         [Required]
         public int SalesInvoiceID { get; set; }
 
+        [ForeignKey("SalesInvoiceID")]
+        public SalesInvoice? SalesInvoice { get; set; }
+
+        [Required]
         public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
 
+        [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal AmountPaid { get; set; }
 
@@ -20,9 +26,5 @@ namespace vehicle_parts.Models
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal RemainingBalance { get; set; }
-
-        // Navigation properties
-        [ForeignKey("SalesInvoiceID")]
-        public SalesInvoice? SalesInvoice { get; set; }
     }
 }

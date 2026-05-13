@@ -11,20 +11,24 @@ namespace vehicle_parts.Models
         [Required]
         public int SalesInvoiceID { get; set; }
 
+        [ForeignKey("SalesInvoiceID")]
+        public SalesInvoice? SalesInvoice { get; set; }
+
         [Required]
         public int PartID { get; set; }
+
+        [ForeignKey("PartID")]
+        public Part? Part { get; set; }
 
         [Required]
         public int Quantity { get; set; }
 
+        [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal UnitPrice { get; set; }
 
+        [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Subtotal { get; set; }
-
-        // Navigation properties
-        [ForeignKey("SalesInvoiceID")]
-        public SalesInvoice? SalesInvoice { get; set; }
     }
 }
