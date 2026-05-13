@@ -101,7 +101,10 @@ namespace vehicle_parts.Controllers
                     u.Email,
                     u.Phone,
                     u.Address,
-                    Vehicles = _context.Vehicles.Where(v => v.UserID == u.UserID).ToList()
+                    u.CreatedDate,
+                    Vehicles = _context.Vehicles.Where(v => v.UserID == u.UserID).ToList(),
+                    Appointments = _context.Appointments.Where(a => a.UserID == u.UserID).OrderByDescending(a => a.AppointmentDate).ToList(),
+                    Sales = _context.SalesInvoices.Where(s => s.UserID == u.UserID).OrderByDescending(s => s.SalesDate).ToList()
                 })
                 .FirstOrDefault();
 
@@ -219,7 +222,6 @@ namespace vehicle_parts.Controllers
 
         // TEMPORARY: Add Part (For testing Feature 7)
         [HttpPost("add-part")]
-        [Tags("5. Inventory (Testing)")]
         public IActionResult AddPart(Part part)
         {
             _context.Parts.Add(part);
@@ -229,11 +231,11 @@ namespace vehicle_parts.Controllers
 
         // TEMPORARY: Get All Parts
         [HttpGet("parts")]
-        [Tags("5. Inventory (Testing)")]
         public IActionResult GetAllParts()
         {
             return Ok(_context.Parts.ToList());
         }
+
 
 
         // POST /api/staff
@@ -317,6 +319,178 @@ namespace vehicle_parts.Controllers
                 return NotFound(result);
 
             return Ok(result);
+        }
+
+        [HttpGet("find-all-customers")]
+        public IActionResult SearchCustomers(string? query)
+        {
+            try
+            {
+                var customers = _context.Users.Where(u => u.RoleID == 3).AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(query))
+                {
+                    string q = query.ToLower();
+                    customers = customers.Where(u => 
+                        (u.FullName != null && u.FullName.ToLower().Contains(q)) || 
+                        (u.Phone != null && u.Phone.Contains(q))
+                    );
+                }
+
+                var results = customers
+                    .OrderByDescending(u => u.UserID)
+                    .Take(50)
+                    .Select(u => new {
+                        u.UserID,
+                        u.FullName,
+                        u.Email,
+                        u.Phone,
+                        Vehicles = _context.Vehicles.Where(v => v.UserID == u.UserID).Select(v => v.VehicleNumber).ToList()
+                    })
+                    .ToList();
+
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal Error: {ex.Message}");
+            }
+        }
+
+        // FEATURE 9: System should maintain service history for each customer
+        [HttpGet("customer-history/{id}")]
+        [Tags("1. Staff - Customer & Vehicle Management")]
+        public IActionResult GetCustomerHistory(int id)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.UserID == id && u.RoleID == 3);
+            if (user == null) return NotFound("Customer not found");
+
+            var history = new
+            {
+                CustomerName = user.FullName,
+                Appointments = _context.Appointments
+                    .Where(a => a.UserID == id)
+                    .OrderByDescending(a => a.AppointmentDate)
+                    .Select(a => new {
+                        a.AppointmentID,
+                        a.AppointmentDate,
+                        a.ServiceType,
+                        a.Status,
+                        a.Notes
+                    }).ToList(),
+                Sales = _context.SalesInvoices
+                    .Where(s => s.UserID == id)
+                    .OrderByDescending(s => s.SalesDate)
+                    .Select(s => new {
+                        s.SalesInvoiceID,
+                        s.SalesDate,
+                        s.FinalAmount,
+                        s.PaymentStatus,
+                        ItemsCount = _context.SalesInvoiceDetails.Count(d => d.SalesInvoiceID == s.SalesInvoiceID)
+                    }).ToList()
+            };
+
+            return Ok(history);
+        }
+
+        // FEATURE 11: Staff can generate customer-related reports
+        [HttpGet("reports/customers")]
+        [Tags("1. Staff - Customer & Vehicle Management")]
+        public IActionResult GetCustomerReports()
+        {
+            // 1. High Spenders (Top 5 by total sales)
+            var highSpenders = _context.Users
+                .Where(u => u.RoleID == 3)
+                .Select(u => new {
+                    u.UserID,
+                    u.FullName,
+                    TotalSpent = _context.SalesInvoices.Where(s => s.UserID == u.UserID).Sum(s => s.FinalAmount)
+                })
+                .OrderByDescending(x => x.TotalSpent)
+                .Take(5)
+                .ToList();
+
+            // 2. Regulars (Top 5 by frequency of visits/appointments)
+            var regularCustomers = _context.Users
+                .Where(u => u.RoleID == 3)
+                .Select(u => new {
+                    u.UserID,
+                    u.FullName,
+                    VisitCount = _context.Appointments.Count(a => a.UserID == u.UserID) + 
+                                 _context.SalesInvoices.Count(s => s.UserID == u.UserID)
+                })
+                .OrderByDescending(x => x.VisitCount)
+                .Take(5)
+                .ToList();
+
+            // 3. Pending Credits (Customers with unpaid invoices)
+            var pendingPayments = _context.SalesInvoices
+                .Where(s => s.PaymentStatus != "Paid")
+                .Select(s => new {
+                    s.SalesInvoiceID,
+                    s.UserID,
+                    CustomerName = s.Customer.FullName,
+                    s.FinalAmount,
+                    s.DueDate
+                })
+                .ToList();
+
+            return Ok(new {
+                HighSpenders = highSpenders,
+                Regulars = regularCustomers,
+                PendingPayments = pendingPayments
+            });
+        }
+
+        // Dashboard Stats
+        [HttpGet("dashboard-stats")]
+        [Tags("1. Staff - Customer & Vehicle Management")]
+        public IActionResult GetDashboardStats()
+        {
+            var stats = new
+            {
+                TotalCustomers = _context.Users.Count(u => u.RoleID == 3),
+                TotalSales = _context.SalesInvoices.Sum(s => s.FinalAmount),
+                PendingAppointments = _context.Appointments.Count(a => a.Status != "Completed"),
+                LowStockAlerts = _context.Parts.Count(p => p.StockQuantity < 10)
+            };
+
+            return Ok(stats);
+        }
+
+        // Get single invoice details
+        [HttpGet("invoice/{id}")]
+        [Tags("4. Sales & Invoices")]
+        public IActionResult GetInvoice(int id)
+        {
+            var invoice = _context.SalesInvoices
+                .Where(s => s.SalesInvoiceID == id)
+                .Select(s => new {
+                    s.SalesInvoiceID,
+                    s.SalesDate,
+                    s.TotalAmount,
+                    s.DiscountAmount,
+                    s.FinalAmount,
+                    s.PaymentStatus,
+                    CustomerName = s.Customer != null ? s.Customer.FullName : "Unknown",
+                    CustomerEmail = s.Customer != null ? s.Customer.Email : "N/A",
+                    CustomerPhone = s.Customer != null ? s.Customer.Phone : "N/A",
+                    CustomerAddress = s.Customer != null ? s.Customer.Address : "N/A",
+                    Items = _context.SalesInvoiceDetails
+                        .Where(d => d.SalesInvoiceID == s.SalesInvoiceID)
+                        .Select(d => new {
+                            PartName = d.Part != null ? d.Part.PartName : "Deleted Part",
+                            d.Quantity,
+                            d.UnitPrice,
+                            d.Subtotal
+                        }).ToList()
+                })
+                .FirstOrDefault();
+
+            if (invoice == null) return NotFound("Invoice not found in database");
+
+            return Ok(invoice);
+
         }
     }
 
