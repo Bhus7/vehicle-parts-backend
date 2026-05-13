@@ -11,5 +11,9 @@ namespace vehicle_parts.Models
 
         // Navigation properties
         public ICollection<User> Users { get; set; } = new List<User>();
+
+        [Required]
+        [MaxLength(50)]
+        public string RoleName { get; set; }
     }
 }

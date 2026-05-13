@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -6,30 +7,34 @@ namespace vehicle_parts.Models
     public class SalesInvoice
     {
         [Key]
-        public int SalesInvoiceID { get; set; }
+        public int Id { get; set; }
 
         [Required]
-        public int UserID { get; set; }
+        public int CustomerId { get; set; }
 
-        public DateTime SalesDate { get; set; } = DateTime.UtcNow;
-
+        [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal TotalAmount { get; set; }
 
+        [Required]
         [Column(TypeName = "decimal(18,2)")]
-        public decimal DiscountAmount { get; set; }
+        public decimal PaidAmount { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal FinalAmount { get; set; }
+        [Required]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public required string PaymentStatus { get; set; } // Pending, Partially Paid, Paid
+        [Required]
+        [MaxLength(20)]
+        public string Status { get; set; } = "Pending"; // e.g., Pending, Paid, PartiallyPaid
 
-        public DateTime? DueDate { get; set; }
+        // Navigation property
+        [ForeignKey("CustomerId")]
+        public Customer Customer { get; set; }
 
-        // Navigation properties
-        [ForeignKey("UserID")]
-        public User? User { get; set; }
-        public ICollection<SalesInvoiceDetail> Details { get; set; } = new List<SalesInvoiceDetail>();
-        public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+        [NotMapped]
+        public bool IsOverdue => (TotalAmount > PaidAmount) && (DateTime.UtcNow > CreatedAt.AddMonths(1));
+        
+        [NotMapped]
+        public decimal CreditAmount => TotalAmount - PaidAmount;
     }
 }

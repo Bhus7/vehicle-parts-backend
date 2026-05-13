@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -13,27 +14,28 @@ namespace vehicle_parts.Models
 
         [Required]
         [MaxLength(100)]
-        public required string FullName { get; set; }
-
-        [EmailAddress]
-        public string? Email { get; set; }
+        public string FullName { get; set; }
 
         [Required]
-        public required string Phone { get; set; }
+        [MaxLength(150)]
+        public string Email { get; set; }
+
+        [MaxLength(20)]
+        public string Phone { get; set; }
 
         [Required]
-        public required string PasswordHash { get; set; }
+        public string PasswordHash { get; set; }
 
-        public string? Address { get; set; }
+        public string Address { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
-        public string? Status { get; set; } // e.g., Active, Inactive
+        [Required]
+        [MaxLength(20)]
+        public string Status { get; set; } = "Active";
 
-        // Navigation properties
+        // Navigation property
         [ForeignKey("RoleID")]
-        public Role? Role { get; set; }
-        public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
-        public ICollection<SalesInvoice> SalesInvoices { get; set; } = new List<SalesInvoice>();
+        public Role Role { get; set; }
     }
 }

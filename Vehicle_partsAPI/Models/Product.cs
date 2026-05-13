@@ -1,4 +1,4 @@
-namespace Vehicle_partsAPI.Models
+namespace vehicle_parts.Models
 {
     public class Product
     {
