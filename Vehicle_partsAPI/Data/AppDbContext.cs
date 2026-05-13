@@ -9,6 +9,9 @@ namespace Vehicle_partsAPI.Data
         {
         }
 
-        public DbSet<Product> Products { get; set; }
+        public DbSet<Part> Parts { get; set; }
+        public DbSet<Vendor> Vendors { get; set; }
+        public DbSet<PurchaseInvoice> PurchaseInvoices { get; set; }
+        public DbSet<PurchaseInvoiceDetail> PurchaseInvoiceDetails { get; set; }
     }
 }

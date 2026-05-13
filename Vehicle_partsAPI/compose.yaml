@@ -1,0 +1,23 @@
+﻿services:
+  vehicle_partsapi:
+    image: vehicle_partsapi
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aspnet-api
+    ports:
+      - "80:8080"
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings_DefaultConnection=Host=db;Port=5432;Username=postgres;Password=1234;Database=vehicleDB
+  db:
+    image: postgres:17
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: vehicleDB
+    ports:
+      - 5432:5432
