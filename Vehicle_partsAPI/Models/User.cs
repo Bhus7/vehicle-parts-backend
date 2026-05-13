@@ -15,15 +15,19 @@ namespace vehicle_parts.Models
         public int RoleID { get; set; }
 
         [JsonIgnore]
+        [ForeignKey("RoleID")]
         public Role? Role { get; set; }
 
         [Required]
+        [MaxLength(100)]
         public string FullName { get; set; }
 
         [Required]
+        [MaxLength(150)]
         public string Email { get; set; }
 
         [Required]
+        [MaxLength(20)]
         public string Phone { get; set; }
 
         [Required]
@@ -33,6 +37,8 @@ namespace vehicle_parts.Models
 
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
+        [Required]
+        [MaxLength(20)]
         public string Status { get; set; } = "Active";
 
         // Navigation properties
